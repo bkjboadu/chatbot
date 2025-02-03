@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Hotel Chatbot</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f0f0f0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+
+            #chat-container {
+                width: 400px;
+                max-width: 90%;
+                height: 600px;
+                background: #fff;
+                display: flex;
+                flex-direction: column;
+                border-radius: 10px;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+
+            #chat-header {
+                background: #075e54;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+            #chatbox {
+                flex: 1;
+                overflow-y: auto;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .message {
+                max-width: 75%;
+                padding: 10px;
+                margin: 5px 10px;
+                border-radius: 10px;
+                word-wrap: break-word;
+            }
+
+            .bot-message {
+                background: #e5e5e5;
+                align-self: flex-start;
+            }
+
+            .user-message {
+                background: #25d366;
+                color: white;
+                align-self: flex-end;
+            }
+
+            #chat-input-container {
+                display: flex;
+                padding: 10px;
+                background: #fff;
+                border-top: 1px solid #ddd;
+            }
+
+            #user-input {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+                outline: none;
+            }
+
+            button {
+                background: #075e54;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                margin-left: 10px;
+                border-radius: 20px;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background: #064e46;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="chat-container">
+            <div id="chat-header">Hotel Booking Chatbot</div>
+            <div id="chatbox"></div>
+            <div id="chat-input-container">
+                <input
+                    type="text"
+                    id="user-input"
+                    placeholder="Type a message..."
+                />
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <script>
+            function sendMessage() {
+                const userInput = document.getElementById("user-input").value.trim();
+                if (!userInput) return;
+
+                const chatbox = document.getElementById("chatbox");
+
+                // Append user message
+                const userMessageDiv = document.createElement("div");
+                userMessageDiv.classList.add("message", "user-message");
+                userMessageDiv.textContent = userInput;
+                chatbox.appendChild(userMessageDiv);
+
+                // Send message to backend
+                fetch("/chatbot/chat/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
+                    },
+                    body: JSON.stringify({ message: userInput }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Append bot message
+                        const botMessageDiv = document.createElement("div");
+                        botMessageDiv.classList.add("message", "bot-message");
+                        botMessageDiv.textContent = data.response;
+                        chatbox.appendChild(botMessageDiv);
+
+                        // Auto-scroll to latest message
+                        chatbox.scrollTop = chatbox.scrollHeight;
+                    })
+                    .catch((error) => console.error("Error:", error));
+
+                // Clear input field
+                document.getElementById("user-input").value = "";
+            }
+
+            // Function to get CSRF token for Django
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== "") {
+                    const cookies = document.cookie.split(";");
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.startsWith(name + "=")) {
+                            cookieValue = decodeURIComponent(
+                                cookie.substring(name.length + 1)
+                            );
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        </script>
+    </body>
+</html>
