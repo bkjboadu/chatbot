@@ -1,3 +1,10 @@
+How to run app:
+
+- pip install -r requirement.txt
+- python manage.py runserver
+
+
+Questions to ask
 # 1️⃣ User: I want to book a room
 curl -X POST http://127.0.0.1:8000/chatbot/chat/ -H "Content-Type: application/json" -d '{"message": "I want to book a room"}'
 
